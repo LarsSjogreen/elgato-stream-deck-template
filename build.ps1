@@ -1,0 +1,1 @@
+DistributionTool.exe -b -i source\com.lars.helloworld.sdPlugin -o .\release\

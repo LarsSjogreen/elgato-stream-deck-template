@@ -1,0 +1,36 @@
+{
+    "Actions": [
+        {
+            "Icon": "actionIcon",
+            "Name": "Hello",
+            "States": [
+                {
+                    "Image": "actionDefaultImage",
+                    "TitleAlignment": "middle",
+                    "FontSize": "16"
+                }
+            ],
+            "SupportedMultiActions": false,
+            "Tooltip": "Hej",
+            "UUID": "com.lars.helloworld.action"
+        }
+    ],
+    "SDKVersion": 2,
+    "Author": "Lars",
+    "CodePath": "code.html",
+    "Description": "A test",
+    "Name": "HelloWorld",
+    "Icon": "pluginIcon",
+    "URL": "https://labs.sjögreen.se",
+    "Version": "1.2.5",
+    "OS": [
+        {
+            "Platform": "windows",
+            "MinimumVersion": "10"
+        }
+    ],
+    "Software":
+    {
+        "MinimumVersion": "4.1"
+    }
+}
