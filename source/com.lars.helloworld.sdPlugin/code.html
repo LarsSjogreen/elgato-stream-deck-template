@@ -1,155 +1,160 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-
-<head>
-	<title>com.lars.helloworld</title>
+  <head>
+    <title>com.lars.helloworld</title>
     <meta charset="utf-8" />
-</head>
+  </head>
 
-<body>
-	<canvas id="bild" width="144" height="144"></canvas>
+  <body>
+    <canvas id="bild" width="144" height="144"></canvas>
     <script>
-    	var websocket = null;
-    	var pluginUUID = null;
+      var websocket = null;
+      var pluginUUID = null;
 
-		const bild = () => {
-			var canvas = document.getElementById("bild");
-			var context = canvas.getContext('2d');
-			context.fillStyle = 'red';
-			context.fillRect(20, 20, 60, 60);
-			return canvas.toDataURL();
-		 }
+      const bild = () => {
+        var canvas = document.getElementById("bild");
+		var context = canvas.getContext("2d");
+		context.fillStyle = '#FFA500';
+        context.fillRect(40, 40, 60, 60);
+        return canvas.toDataURL();
+      };
 
-    	var DestinationEnum = Object.freeze({"HARDWARE_AND_SOFTWARE":0, "HARDWARE_ONLY":1, "SOFTWARE_ONLY":2})
+      var DestinationEnum = Object.freeze({
+        HARDWARE_AND_SOFTWARE: 0,
+        HARDWARE_ONLY: 1,
+        SOFTWARE_ONLY: 2
+      });
 
-    	var counterAction = {
+      var counterAction = {
+        type: "com.lars.helloworld.action",
 
-			type : "com.lars.helloworld.action",
+        onKeyDown: function(
+          context,
+          settings,
+          coordinates,
+          userDesiredState
+        ) {},
 
-			onKeyDown : function(context, settings, coordinates, userDesiredState) {
-				//this.SetTitle(context, "Hej");
-			},
+        onKeyUp: function(context, settings, coordinates, userDesiredState) {
+          var bilden = bild();
+          this.SetImage(context, bilden);
+        },
 
-			onKeyUp : function(context, settings, coordinates, userDesiredState) {
-				//this.SetTitle(context, "Hopp");
-				this.Log("Hej");
-				var bilden = bild();
-				this.Log(bilden);
-				this.SetImage(context, bilden);
-			},
+        onWillAppear: function(context, settings, coordinates) {},
 
-			onWillAppear : function(context, settings, coordinates) {
-				this.Log("Hejsan");
-				//this.SetTitle(context, "Hoj");
-			},
+        SetTitle: function(context, text) {
+          var json = {
+            event: "setTitle",
+            context: context,
+            payload: {
+              title: text,
+              target: DestinationEnum.HARDWARE_AND_SOFTWARE
+            }
+          };
 
-			SetTitle : function(context, text) {
-				var json = {
-					"event": "setTitle",
-					"context": context,
-					"payload": {
-						"title": text,
-						"target": DestinationEnum.HARDWARE_AND_SOFTWARE
-					}
-				};
+          websocket.send(JSON.stringify(json));
+        },
 
-				websocket.send(JSON.stringify(json));
-			 },
+        Log: function(context, text) {
+          var json = {
+            event: "logMessage",
+            context: context,
+            payload: {
+              message: text
+            }
+          };
+          websocket.send(JSON.stringify(json));
+        },
 
-			 Log : function(context, text) {
-				 var json = {
-					 "event": "logMessage",
-					 "context": context,
-					 "payload": {
-						 "message": text
-					 }
-				 };
-				 websocket.send(JSON.stringify(json));
-			 },
+        SetSettings: function(context, settings) {
+          var json = {
+            event: "setSettings",
+            context: context,
+            payload: settings
+          };
 
-			 SetSettings : function(context, settings) {
-				var json = {
-					"event": "setSettings",
-					"context": context,
-					"payload": settings
-				};
+          websocket.send(JSON.stringify(json));
+        },
 
-				websocket.send(JSON.stringify(json));
-			 },
+        SetImage: function(context, imageData) {
+          var json = {
+            event: "setImage",
+            context: context,
+            payload: {
+              image: imageData,
+              target: DestinationEnum.HARDWARE_ONLY
+            }
+          };
+          websocket.send(JSON.stringify(json));
+        }
+      };
 
-			 SetImage : function(context, imageData) {
-				 var json = {
-					 "event": "setImage",
-					 "context": context,
-					 "payload": {
-						 "image": imageData,
-						 "target": DestinationEnum.HARDWARE_AND_SOFTWARE
-					 }
-				 }
-			 }
-		};
+      function connectElgatoStreamDeckSocket(
+        inPort,
+        inPluginUUID,
+        inRegisterEvent,
+        inInfo
+      ) {
+        pluginUUID = inPluginUUID;
 
-        function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, inInfo)
-         {
-         	pluginUUID = inPluginUUID
+        // Open the web socket
+        websocket = new WebSocket("ws://127.0.0.1:" + inPort);
 
-			// Open the web socket
-			websocket = new WebSocket("ws://127.0.0.1:" + inPort);
+        function registerPlugin(inPluginUUID) {
+          var json = {
+            event: inRegisterEvent,
+            uuid: inPluginUUID
+          };
 
-			function registerPlugin(inPluginUUID)
-			 {
-				var json = {
-					"event": inRegisterEvent,
-					"uuid": inPluginUUID
-				};
+          websocket.send(JSON.stringify(json));
+        }
 
-				websocket.send(JSON.stringify(json));
-			 };
+        websocket.onopen = function() {
+          // WebSocket is connected, send message
+          registerPlugin(pluginUUID);
+        };
 
-			websocket.onopen = function()
-			{
-				// WebSocket is connected, send message
-				registerPlugin(pluginUUID);
-			};
+        websocket.onmessage = function(evt) {
+          // Received message from Stream Deck
+          var jsonObj = JSON.parse(evt.data);
+          var event = jsonObj["event"];
+          var action = jsonObj["action"];
+          var context = jsonObj["context"];
 
-			websocket.onmessage = function (evt)
-			{
-				// Received message from Stream Deck
-				var jsonObj = JSON.parse(evt.data);
-				var event = jsonObj['event'];
-				var action = jsonObj['action'];
-				var context = jsonObj['context'];
+          if (event == "keyDown") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            var userDesiredState = jsonPayload["userDesiredState"];
+            counterAction.onKeyDown(
+              context,
+              settings,
+              coordinates,
+              userDesiredState
+            );
+          } else if (event == "keyUp") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            var userDesiredState = jsonPayload["userDesiredState"];
+            counterAction.onKeyUp(
+              context,
+              settings,
+              coordinates,
+              userDesiredState
+            );
+          } else if (event == "willAppear") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            counterAction.onWillAppear(context, settings, coordinates);
+          }
+        };
 
-				if(event == "keyDown")
-				{
-					var jsonPayload = jsonObj['payload'];
-					var settings = jsonPayload['settings'];
-					var coordinates = jsonPayload['coordinates'];
-					var userDesiredState = jsonPayload['userDesiredState'];
-					counterAction.onKeyDown(context, settings, coordinates, userDesiredState);
-				}
-				else if(event == "keyUp")
-				{
-					var jsonPayload = jsonObj['payload'];
-					var settings = jsonPayload['settings'];
-					var coordinates = jsonPayload['coordinates'];
-					var userDesiredState = jsonPayload['userDesiredState'];
-					counterAction.onKeyUp(context, settings, coordinates, userDesiredState);
-				}
-				else if(event == "willAppear")
-				{
-					var jsonPayload = jsonObj['payload'];
-					var settings = jsonPayload['settings'];
-					var coordinates = jsonPayload['coordinates'];
-					counterAction.onWillAppear(context, settings, coordinates);
-				}
-			};
-
-			websocket.onclose = function()
-			{
-				// Websocket is closed
-			};
-         };
+        websocket.onclose = function() {
+          // Websocket is closed
+        };
+      }
     </script>
-</body>
+  </body>
 </html>

@@ -22,7 +22,7 @@
     "Name": "HelloWorld",
     "Icon": "pluginIcon",
     "URL": "https://labs.sjögreen.se",
-    "Version": "1.2.5",
+    "Version": "1.2.11",
     "OS": [
         {
             "Platform": "windows",
