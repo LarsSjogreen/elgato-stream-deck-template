@@ -18,11 +18,12 @@
     "SDKVersion": 2,
     "Author": "Lars",
     "CodePath": "code.html",
+    "PropertyInspectorPath": "pi.html",
     "Description": "A test",
     "Name": "HelloWorld",
     "Icon": "pluginIcon",
     "URL": "https://labs.sjögreen.se",
-    "Version": "1.2.11",
+    "Version": "1.2.25",
     "OS": [
         {
             "Platform": "windows",

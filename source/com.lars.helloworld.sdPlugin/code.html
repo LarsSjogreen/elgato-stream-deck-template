@@ -9,12 +9,16 @@
     <canvas id="bild" width="144" height="144"></canvas>
     <script>
       var websocket = null;
+      var cache = {};
+      var globalSettings = {};
       var pluginUUID = null;
 
       const bild = () => {
         var canvas = document.getElementById("bild");
-		var context = canvas.getContext("2d");
-		context.fillStyle = '#FFA500';
+        var context = canvas.getContext("2d");
+        context.fillStyle = `#${Math.floor(
+          Math.random() * 4096 * 4096
+        ).toString(16)}`;
         context.fillRect(40, 40, 60, 60);
         return canvas.toDataURL();
       };
@@ -38,6 +42,9 @@
         onKeyUp: function(context, settings, coordinates, userDesiredState) {
           var bilden = bild();
           this.SetImage(context, bilden);
+          fetch("http://tv-datorn:3000/users/2/web_requests/23/sjogreenslack", {
+            method: "POST"
+          });
         },
 
         onWillAppear: function(context, settings, coordinates) {},
@@ -120,8 +127,11 @@
           var event = jsonObj["event"];
           var action = jsonObj["action"];
           var context = jsonObj["context"];
+          var payload = JSON.parse(evt.payload);
 
-          if (event == "keyDown") {
+          if (event == "sendToPlugin") {
+            SetTitle(context, "frukt");
+          } else if (event == "keyDown") {
             var jsonPayload = jsonObj["payload"];
             var settings = jsonPayload["settings"];
             var coordinates = jsonPayload["coordinates"];
@@ -150,11 +160,11 @@
             counterAction.onWillAppear(context, settings, coordinates);
           }
         };
-
-        websocket.onclose = function() {
-          // Websocket is closed
-        };
       }
+
+      websocket.onclose = function() {
+        // Websocket is closed
+      };
     </script>
   </body>
 </html>

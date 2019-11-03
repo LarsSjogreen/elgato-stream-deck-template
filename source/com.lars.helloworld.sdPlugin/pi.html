@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>My Property Inspector</title>
+    <link rel="stylesheet" href="sdpi.css" />
+  </head>
+  <body>
+    <script>
+      let port;
+      var websocket = null;
+      var uuid = null;
+      var actionInfo = {};
+
+      function connectElgatoStreamDeckSocket(
+        inPort,
+        inPropertyInspectorUUID,
+        inRegisterEvent,
+        inInfo,
+        inActionInfo
+      ) {
+        port = inPort;
+        actionInfo = JSON.parse(inActionInfo);
+        websocket = new WebSocket("ws://localhost:" + port);
+        websocket.onopen = function() {
+          var json = {
+            event: inRegisterEvent,
+            uuid: inUUID
+          };
+          // register property inspector to Stream Deck
+          websocket.send(JSON.stringify(json));
+        };
+      }
+
+      // our method to pass values to the plugin
+      function sendValueToPlugin(value, param) {
+        if (websocket) {
+          const json = {
+            action: actionInfo["action"],
+            event: "sendToPlugin",
+            context: uuid,
+            payload: {
+              [param]: value
+            }
+          };
+          websocket.send(JSON.stringify(json));
+        }
+      }
+    </script>
+    <div class="sdpi-wrapper" id="pi">
+      <div class="sdpi-item">
+        <div class="sdpi-item-label">Message</div>
+        <input class="sdpi-item-value" id="message" onChange="sendValueToPlugin(event.target.value, 'identifier')" value="A message to send" />
+      </div>
+      <div class="sdpi-item">
+        <div class="sdpi-item-label">Pushover API Token/key</div>
+        <input class="sdpi-item-value id="pushoverAPIKey" value="Your pushover
+        API key"/>
+      </div>
+      <div class="sdpi-item">
+        <div class="sdpi-item-label">Pushover User Key</div>
+        <input class="sdpi-item-value id="pushoverUserKey" value="Your pushover
+        user key"/>
+      </div>
+    </div>
+  </body>
+</html>
